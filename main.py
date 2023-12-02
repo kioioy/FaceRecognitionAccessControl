@@ -70,6 +70,7 @@ async def save_face(file: UploadFile = File(...)):
     # Save the image to the specified path
     with open("captured_face.jpg", "wb") as f:
         f.write(contents)
+        print("yyyyy")
     return {"message": "Face saved successfully"}
 
 if __name__ == "__main__":
