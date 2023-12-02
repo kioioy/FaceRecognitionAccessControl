@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition System</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #container {
+            position: relative;
+        }
+        #video {
+            width: 100%;
+            max-width: 640px;
+            height: auto;
+        }
+        #canvas {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            max-width: 640px;
+            height: auto;
+        }
+        #buttons {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 640px;
+            padding: 10px;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+        }
+        #container {
+            position: relative;
+        }
+        
+        #video {
+            width: 100%;
+            max-width: 640px;
+            height: auto;
+        }
+        
+        .face-frame {
+            position: absolute;
+            border: 2px solid #00FF00; /* 초록색 프레임 */
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas"></canvas>
+    </div>
+    <div id="buttons">
+        <button id="captureButton">Capture</button>
+        <button id="saveButton">Save Face</button>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureButton = document.getElementById('captureButton');
+        const saveButton = document.getElementById('saveButton');
+        const ctx = canvas.getContext('2d');
+
+        // 카메라 접근 권한 요청 및 비디오 스트림 설정
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                video.srcObject = stream;
+            })
+            .catch((err) => {
+                console.error('Error accessing the camera: ', err);
+            });
+
+        // 캡처 버튼 클릭 시 canvas에 현재 비디오 프레임을 그림
+        captureButton.addEventListener('click', async () => {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        });
+
+        // 저장 버튼 클릭 시 얼굴 저장 엔드포인트에 POST 요청 보냄
+        saveButton.addEventListener('click', async () => {
+            const dataUrl = canvas.toDataURL('image/jpeg');
+            const blobData = await (await fetch(dataUrl)).blob();
+        
+            const formData = new FormData();
+            formData.append('file', blobData);
+        
+            fetch('http://localhost:8000/save_face', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                console.log('Image uploaded successfully!');
+            })
+            .catch(error => {
+                console.error('Error uploading image:', error);
+            });
+        });
+    </script>
+</body>
+</html>
